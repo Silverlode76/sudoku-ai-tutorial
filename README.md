@@ -8,18 +8,19 @@ An educational project designed to teach beginners the fundamentals of tensors, 
 # Introduction 
 This course aims to explain how a Sudoku puzzle can also be solved with an optimizer approach. We will use therefore Tensor operations to define the needed loss functions for the optimizer.
 
-## The Sudoku problem 
+## The 4x4 Sudoku problem 
 A Sudoku puzzle is solved if we have in every row numbers 1,2,3,4 and if we have in every column numbers 1,2,3,4. Additionally the 4 blocks need to contain also numbers 1,2,3,4. 
 Mathematically this is expressed as follows:
 
 <img width="40%" alt="image" src="https://github.com/user-attachments/assets/2ce3e79d-d94a-4239-b4df-99845c8727d7" />
 
-## The Sudoku Puzzle
+## The 4x4 Sudoku Puzzle
 Let’s assume we have a Sudoku puzzle where only 4 numbers are given. We can put all givens with its values in a matrix as shown below
 
 <img width="40%" alt="image" src="https://github.com/user-attachments/assets/a6b2e530-1f56-4b17-a2b6-0bebd7972f64" />
 
-## The Sudoku Puzzle as Tensor 
+## The 4x4 Sudoku Tensors
+Sudoku Puzzle as Tensor 
 Since we have created a matrix which represents our puzzle with the given number we need to define the matrix and the givens in tensors due to pytorch manipulation is done with tensors.
 Due to tensor indices start with 0 we need to subtract 1 because our number from the puzzle are between 1..4 which represents tensor indices 0..3
 Table below shows the Sudoku puzzle, the Sudoku Tensor and the logical Givens
@@ -38,6 +39,8 @@ In our Z cube would look like follows (red and green are givens from our puzzle)
 |------|-------------|
 |<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/c4441557-83a9-4209-b140-8f05d1fa4501" />|<img width="1186" height="666" alt="image" src="https://github.com/user-attachments/assets/2f62fa3a-2a6e-431b-bd5e-b36487ba09bd" />
 |
+
+## 
 
 
 
