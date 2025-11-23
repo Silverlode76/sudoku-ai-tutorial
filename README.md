@@ -40,7 +40,63 @@ In our Z cube would look like follows (red and green are givens from our puzzle)
 |<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/c4441557-83a9-4209-b140-8f05d1fa4501" />|<img width="1186" height="666" alt="image" src="https://github.com/user-attachments/assets/2f62fa3a-2a6e-431b-bd5e-b36487ba09bd" />
 |
 
-## 
+# Preparing the Optimizer 
+As Optimizer we use Adam Optimizer. The Input is our Tensor Z  
+```python
+opt = torch.optim.Adam([Z], lr=lr)
+```
+# The Adam Optimizer
+Why we use the Adam optimizer
+- We optimize a single trainable tensor Z, which contains the logits for each Sudoku cell.
+- The optimization landscape of Sudoku is highly non-linear and contains many local minima due to:
+  - row/column/block constraints
+  - given-value constraints
+  - temperature-scaled softmax
+  - multiple interacting loss terms
+
+Adam is the ideal optimizer here because:
+- it adapts the learning rate per tensor element
+- it combines Momentum and RMSProp, providing stability
+- it handles flat regions and steep regions effectively
+- it converges much faster than SGD
+- it works very well with softmax and temperature annealing
+
+## Temperature Annealing / Sofmax
+
+The P is the probalility denysity of Tensor Z.
+Example of Softamx():
+
+<img width="364" height="148" alt="image" src="https://github.com/user-attachments/assets/408b6f5c-d844-4803-a8e6-71258cb1d2e8" />
+
+Why Softmax
+Softmax ensures that each cell represents a soft decision over all possible digits.
+Each cell has a “soft” decision over the possible digits (1–4).
+P[r, c, :] is always a valid probability vector — all entries are positive.
+The probabilities always sum to 1, making them perfect for enforcing Sudoku constraints.
+The optimizer can learn smoothly because these soft probabilities are differentiable, unlike hard one-hot choices
+
+| Tensor Z | Tensor P |
+|------|-------------|
+| <img width="80%" alt="image" src="https://github.com/user-attachments/assets/18fbd8c2-362c-4191-b40a-44600da8ff15" /> | <img width="80%" alt="image" src="https://github.com/user-attachments/assets/88e32fa6-169f-4b44-ae4a-f6e63770ad17" />|
+
+| Z-Vector (Logits)                            | P-Vector (Softmax)                 | Sum(P) |
+| -------------------------------------------- | ---------------------------------- | ------ |
+| `[5.0, -5.0, -5.0, -5.0]`                    | `[0.9424, 0.0202, 0.0202, 0.0172]` | `1.0`  |
+| `[-0.0059, -0.0025, 0.0057, -0.0039]`        | `[0.2296, 0.2698, 0.2707, 0.2298]` | `1.0`  |
+| `[4.7337e-04, -2.0038e-03, 7.8445e-03, ...]` | `[0.2298, 0.2694, 0.2705, 0.2303]` | `1.0`  |
+| `[-5.0, -5.0, -5.0, 5.0]`                    | `[0.0172, 0.0202, 0.0202, 0.9424]` | `1.0`  |
+
+
+```python
+t = temperature_init + (temperature_final - temperature_init) * (step / max_steps)
+P = F.softmax(Z / t, dim=2)  # (4,4,4)
+```
+
+
+
+
+
+
 
 
 
