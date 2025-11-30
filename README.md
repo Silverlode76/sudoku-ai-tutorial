@@ -38,7 +38,6 @@ In our Z cube would look like follows (red and green are givens from our puzzle)
 | Tensor Z | Description |
 |------|-------------|
 |<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/c4441557-83a9-4209-b140-8f05d1fa4501" />|<img width="1186" height="666" alt="image" src="https://github.com/user-attachments/assets/2f62fa3a-2a6e-431b-bd5e-b36487ba09bd" />
-|
 
 # Preparing the Optimizer 
 As Optimizer we use Adam Optimizer. The Input is our Tensor Z  
@@ -75,9 +74,18 @@ P[r, c, :] is always a valid probability vector — all entries are positive.
 The probabilities always sum to 1, making them perfect for enforcing Sudoku constraints.
 The optimizer can learn smoothly because these soft probabilities are differentiable, unlike hard one-hot choices
 
+```python
+t = temperature_init + (temperature_final - temperature_init) * (step / max_steps)
+P = F.softmax(Z / t, dim=2)  # (4,4,4)
+```
+The Tensors Z and P has the dimensions row (dim=0), col (dim=1) and digit (dim =2). In the function above we do Softmax "over thh digits" therefore we have to put dim=2.
+This means that if we sum up for every element as P(0,0, :) we get sum = 1 which is shown below
+
 | Tensor Z | Tensor P |
 |------|-------------|
 | <img width="80%" alt="image" src="https://github.com/user-attachments/assets/18fbd8c2-362c-4191-b40a-44600da8ff15" /> | <img width="80%" alt="image" src="https://github.com/user-attachments/assets/88e32fa6-169f-4b44-ae4a-f6e63770ad17" />|
+
+Let's consider slice = 0 (or row = 0). The Sum over the digits is always 1.0. 
 
 | Z-Vector (Logits)                            | P-Vector (Softmax)                 | Sum(P) |
 | -------------------------------------------- | ---------------------------------- | ------ |
@@ -86,11 +94,42 @@ The optimizer can learn smoothly because these soft probabilities are differenti
 | `[4.7337e-04, -2.0038e-03, 7.8445e-03, ...]` | `[0.2298, 0.2694, 0.2705, 0.2303]` | `1.0`  |
 | `[-5.0, -5.0, -5.0, 5.0]`                    | `[0.0172, 0.0202, 0.0202, 0.9424]` | `1.0`  |
 
+# The Lossfunction 
+
+## The Row Loss
+For each row we have now to determine the loss which we do with:
+
+<img width="30%" alt="image" src="https://github.com/user-attachments/assets/76bff619-6583-46b4-bdea-beb337c8de4a" />
 
 ```python
-t = temperature_init + (temperature_final - temperature_init) * (step / max_steps)
-P = F.softmax(Z / t, dim=2)  # (4,4,4)
+row_sum = P.sum(dim=1)          # (4,4) over columns -> rows x digits
+L_row = ((row_sum - 1.0) ** 2).sum()
 ```
+The Tensor row_sum has the dimensions (row, digits) after the operation from above.
+Let's take for demonstration the first slice = 0 and let's calculate the sum over the coliums
+
+| P-Tensor (0,c, digits)                       | row_sum                |
+| -------------------------------------------- | ---------------------- |
+|[0.9424, 0.0202, 0.0202, 0.0172] | 0.9424 + 0.2304 + 0.2304 + 0.0172 = 1.4204 |
+|[0.2304, 0.2706, 0.2695, 0.2295] | 0.0202 + 0.2706 + 0.2710 + 0.0202 = 0.5819 |
+|[0.2304, 0.2710, 0.2700, 0.2285] | 0.0202 + 0.2695 + 0.2700 + 0.0202 = 0.5799 | 
+|[0.0172, 0.0202, 0.0202, 0.9424] | 0.0172 + 0.2295 + 0.2285 + 0.9424 = 1.4176 |
+
+row_sum[0] = [1.4204, 0.5819, 0.5799, 1.4176]
+So if we apply here the Soduko Rule that the sum for each row must be 1 then we see here that for digit 0 & 3 we have 1.42 and 1.41 which is too high and for the other digits it's too low.
+In the ideal case and when the riddle is solved we would get with L_row = ((row_sum - 1.0) ** 2).sum() = 0
+
+## The Colum Loss
+What we did for the rows had now also be applied to the columns with:
+
+<img width="30%" alt="image" src="https://github.com/user-attachments/assets/751ac262-ef72-4971-9617-8417843ae01a" />
+
+```python
+col_sum = P.sum(dim=0)          # (4,4) over rows -> cols x digits
+L_col = ((col_sum - 1.0) ** 2).sum()
+```
+
+
 
 
 
