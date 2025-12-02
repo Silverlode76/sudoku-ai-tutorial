@@ -2,8 +2,21 @@
 
 
 
-# sudoku-ai-tutorial
-An educational project designed to teach beginners the fundamentals of tensors, logits, normalization, loss functions, and optimizers through a hands-on neural Sudoku example. Ideal for learners entering machine learning, PyTorch, and gradient-based reasoning
+# Sudoku AI Tutorial
+
+A hands-on educational project that demonstrates how a Sudoku puzzle  
+can be solved using *tensors, logits, softmax, constraint loss functions,*  
+and the *Adam optimizer* in PyTorch.
+
+This tutorial teaches beginners the fundamentals of:
+- tensor operations  
+- probability distributions via softmax  
+- row/column/block constraints  
+- optimizer-based reasoning  
+- temperature annealing  
+- implementing custom loss functions  
+
+The full example is built on a 4×4 Sudoku puzzle and extends naturally to 6×6 and 9×9 grids.
 
 # Introduction 
 This course aims to explain how a Sudoku puzzle can also be solved with an optimizer approach. We will use therefore Tensor operations to define the needed loss functions for the optimizer.
