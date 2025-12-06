@@ -142,6 +142,86 @@ col_sum = P.sum(dim=0)          # (4,4) over rows -> cols x digits
 L_col = ((col_sum - 1.0) ** 2).sum()
 ```
 
+# Schritt-für-Schritt-Tutorial: Tensoren und Operationen
+Die folgenden Schritte zeigen, wie die im Text beschriebenen Tensoren und Operationen in PyTorch umgesetzt werden können. Alle Beispiele sind so gewählt, dass sie sofort in einer frischen Python-Session funktionieren.
+
+## 1) Grundlegende Tensoren anlegen
+```python
+import torch
+import torch.nn.functional as F
+
+# Feste Sudoku-Vorgaben (1-basierte Eingabe -> 0-basierte Indizes)
+puzzle = torch.tensor([
+    [0, 0, 0, 4],
+    [0, 2, 0, 0],
+    [1, 0, 0, 0],
+    [0, 0, 3, 0],
+])
+
+# Boolean-Maske, die anzeigt, welche Felder Vorgaben sind
+givens_mask = puzzle > 0
+```
+
+## 2) Trainierbares Logit-Tensor `Z`
+```python
+digits = 4
+Z = torch.zeros(4, 4, digits, requires_grad=True)  # (row, col, digit)
+```
+
+## 3) Softmax mit Temperatur für Wahrscheinlichkeiten `P`
+```python
+temperature = 1.0
+P = F.softmax(Z / temperature, dim=2)  # jede Zelle summiert sich über die Ziffern zu 1
+```
+
+## 4) Verlustfunktionen für Sudoku-Regeln
+```python
+# Vorgaben erzwingen
+one_hot_givens = F.one_hot((puzzle - 1).clamp(min=0), num_classes=digits)
+L_given = ((P[givens_mask] - one_hot_givens[givens_mask]) ** 2).sum()
+
+# Zeilen- und Spaltenregeln
+row_sum = P.sum(dim=1)               # (4, 4)
+col_sum = P.sum(dim=0)               # (4, 4)
+L_row = ((row_sum - 1.0) ** 2).sum()
+L_col = ((col_sum - 1.0) ** 2).sum()
+
+# Block-Regel für 4x4 (2x2 Blöcke)
+blocks = P.view(2, 2, 2, 2, digits).sum(dim=(1, 3))  # (2, 2, 4)
+L_block = ((blocks - 1.0) ** 2).sum()
+
+# Gesamtkosten
+loss = L_given + L_row + L_col + L_block
+```
+
+## 5) Optimierung mit Adam
+```python
+opt = torch.optim.Adam([Z], lr=0.05)
+for step in range(500):
+    opt.zero_grad()
+    P = F.softmax(Z / temperature, dim=2)
+
+    row_sum = P.sum(dim=1)
+    col_sum = P.sum(dim=0)
+    blocks = P.view(2, 2, 2, 2, digits).sum(dim=(1, 3))
+    L_row = ((row_sum - 1.0) ** 2).sum()
+    L_col = ((col_sum - 1.0) ** 2).sum()
+    L_block = ((blocks - 1.0) ** 2).sum()
+
+    L_given = ((P[givens_mask] - one_hot_givens[givens_mask]) ** 2).sum()
+    loss = L_given + L_row + L_col + L_block
+    loss.backward()
+    opt.step()
+
+solution = P.argmax(dim=2) + 1  # zurück zu 1..4
+print(solution)
+```
+
+## 6) Ergebnis interpretieren
+- `solution` enthält die Sudoku-Zahlen zwischen 1 und 4.
+- Die Summe der Verluste `loss` sollte gegen 0 gehen, wenn alle Regeln erfüllt sind.
+- Über `temperature` kannst du die "Schärfe" der Softmax steuern und so die Optimierung stabilisieren.
+
 
 
 
