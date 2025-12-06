@@ -119,18 +119,16 @@ row_sum = P.sum(dim=1)          # (4,4) over columns -> rows x digits
 L_row = ((row_sum - 1.0) ** 2).sum()
 ```
 The Tensor row_sum has the dimensions (row, digits) after the operation from above.
-Let's take for demonstration the first slice = 0 and let's calculate the sum over the coliums
+Let's take for demonstration the first slice = 0 (erste Zeile). Für jede Spalte liegt eine Wahrscheinlichkeitsverteilung über die vier Ziffern vor (die Spaltensummen ergeben 1). `row_sum[0]` addiert diese Spalten pro Ziffer und ergibt eine zweidimensionale Tabelle (Zeile × Ziffer):
 
-| P-Tensor (0,c, digits)                       | row_sum                |
-| -------------------------------------------- | ---------------------- |
-|[0.9424, 0.0202, 0.0202, 0.0172] | 0.9424 + 0.2304 + 0.2304 + 0.0172 = 1.4204 |
-|[0.2304, 0.2706, 0.2695, 0.2295] | 0.0202 + 0.2706 + 0.2710 + 0.0202 = 0.5819 |
-|[0.2304, 0.2710, 0.2700, 0.2285] | 0.0202 + 0.2695 + 0.2700 + 0.0202 = 0.5799 | 
-|[0.0172, 0.0202, 0.0202, 0.9424] | 0.0172 + 0.2295 + 0.2285 + 0.9424 = 1.4176 |
+| Ziffer (digit) | P[0,0,d] | P[0,1,d] | P[0,2,d] | P[0,3,d] | row_sum[0, d] = Summe über Spalten |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0.70 | 0.05 | 0.20 | 0.05 | **1.00** |
+| 1 | 0.10 | 0.05 | 0.30 | 0.35 | **0.80** |
+| 2 | 0.10 | 0.80 | 0.10 | 0.10 | **1.10** |
+| 3 | 0.10 | 0.10 | 0.40 | 0.50 | **1.10** |
 
-row_sum[0] = [1.4204, 0.5819, 0.5799, 1.4176]
-So if we apply here the Soduko Rule that the sum for each row must be 1 then we see here that for digit 0 & 3 we have 1.42 and 1.41 which is too high and for the other digits it's too low.
-In the ideal case and when the riddle is solved we would get with L_row = ((row_sum - 1.0) ** 2).sum() = 0
+`row_sum[0] = [1.00, 0.80, 1.10, 1.10]`. Ideal wäre für jede Ziffer der Wert `1.0`, denn jede Ziffer darf pro Zeile nur einmal vorkommen. Abweichungen davon tragen zum Verlust `L_row` bei; im gelösten Sudoku strebt `L_row = 0` an.
 
 ## The Colum Loss
 What we did for the rows had now also be applied to the columns with:
