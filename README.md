@@ -139,6 +139,16 @@ What we did for the rows had now also be applied to the columns with:
 col_sum = P.sum(dim=0)          # (4,4) over rows -> cols x digits
 L_col = ((col_sum - 1.0) ** 2).sum()
 ```
+`col_sum` spiegelt für jede Spalte die Summe der Wahrscheinlichkeiten pro Ziffer wider. Für die erste Spalte (c = 0) ergibt die Tabellenansicht:
+
+| Ziffer (digit) | P[0,0,d] | P[1,0,d] | P[2,0,d] | P[3,0,d] | col_sum[0, d] = Summe über Zeilen |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0.70 | 0.10 | 0.05 | 0.15 | **1.00** |
+| 1 | 0.10 | 0.20 | 0.30 | 0.25 | **0.85** |
+| 2 | 0.10 | 0.60 | 0.55 | 0.10 | **1.35** |
+| 3 | 0.10 | 0.10 | 0.10 | 0.50 | **0.80** |
+
+`col_sum[0] = [1.00, 0.85, 1.35, 0.80]`. Ideal ist `1.0` pro Ziffer, denn jede Ziffer darf pro Spalte nur einmal vorkommen. Abweichungen fließen in `L_col` ein; im gelösten Sudoku sollte `L_col = 0` sein.
 
 # Schritt-für-Schritt-Tutorial: Tensoren und Operationen
 Die folgenden Schritte zeigen, wie die im Text beschriebenen Tensoren und Operationen in PyTorch umgesetzt werden können. Alle Beispiele sind so gewählt, dass sie sofort in einer frischen Python-Session funktionieren.
