@@ -150,6 +150,25 @@ L_col = ((col_sum - 1.0) ** 2).sum()
 
 `col_sum[0] = [1.00, 0.85, 1.35, 0.80]`. Ideal ist `1.0` pro Ziffer, denn jede Ziffer darf pro Spalte nur einmal vorkommen. Abweichungen fließen in `L_col` ein; im gelösten Sudoku sollte `L_col = 0` sein.
 
+## The Block Loss
+Auch die 2×2-Blöcke müssen jede Ziffer genau einmal enthalten. Für ein 4×4-Sudoku wird `P` daher in 2×2×2×2×4 umgeformt und dann über die inneren Blockachsen summiert:
+
+```python
+blocks = P.view(2, 2, 2, 2, digits).sum(dim=(1, 3))  # (block_row, block_col, digit)
+L_block = ((blocks - 1.0) ** 2).sum()
+```
+
+Betrachten wir den Block oben links (Block-Index `[0,0]`), der die Zellen `(0,0), (0,1), (1,0), (1,1)` umfasst. Jede dieser vier Zellen liefert eine Wahrscheinlichkeitsverteilung über die Ziffern. `blocks[0,0]` addiert die vier Zellen pro Ziffer:
+
+| Ziffer (digit) | P[0,0,d] | P[0,1,d] | P[1,0,d] | P[1,1,d] | blocks[0,0, d] = Summe über 2×2-Zellen |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0.70 | 0.05 | 0.10 | 0.15 | **1.00** |
+| 1 | 0.10 | 0.05 | 0.20 | 0.25 | **0.60** |
+| 2 | 0.10 | 0.80 | 0.60 | 0.10 | **1.60** |
+| 3 | 0.10 | 0.10 | 0.10 | 0.50 | **0.80** |
+
+`blocks[0,0] = [1.00, 0.60, 1.60, 0.80]`. Ideal ist wieder `1.0` pro Ziffer, damit jeder Block alle Ziffern einmal enthält. Abweichungen bestimmen den Block-Verlust `L_block`; im gelösten Sudoku strebt auch hier der Wert gegen `0`.
+
 # Schritt-für-Schritt-Tutorial: Tensoren und Operationen
 Die folgenden Schritte zeigen, wie die im Text beschriebenen Tensoren und Operationen in PyTorch umgesetzt werden können. Alle Beispiele sind so gewählt, dass sie sofort in einer frischen Python-Session funktionieren.
 
