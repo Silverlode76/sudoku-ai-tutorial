@@ -1,5 +1,8 @@
 # Sudoku AI Tutorial – Solving Sudoku with Tensors and Optimization
 
+<img src="images/Cube4x4x4.jpg" alt="4×4×4 Sudoku as a tensor cube" width="200">
+
+
 This repository is a step-by-step educational project that demonstrates how a Sudoku puzzle can be formulated and solved as a **continuous optimization problem** using PyTorch.
 
 Instead of classic backtracking or rule-based solvers, Sudoku is modeled as a set of **differentiable constraints** operating on probability tensors.  
