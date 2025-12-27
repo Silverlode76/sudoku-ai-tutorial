@@ -7522,6 +7522,10 @@ Here we focus on <strong>how</strong> an optimizer turns those constraints into 
 <p>Key idea: we do <strong>not</strong> train a neural network.<br/>
 We directly optimize a <strong>tensor of logits</strong> whose softmax becomes the probability tensor <strong>P</strong>.</p>
 </blockquote>
+<p>The 4×4 case primarily serves as a didactic example to illustrate
+the continuous relaxation and optimization dynamics.
+Due to the small problem size, convergence is typically very fast,
+even for puzzles with many unknown cells.</p>
 <hr/>
 <h2 id="2.1-Recap:-The-Constraint-Landscape">2.1 Recap: The Constraint Landscape<a class="anchor-link" href="#2.1-Recap:-The-Constraint-Landscape">¶</a></h2><p>A valid Sudoku solution is defined by constraints:</p>
 <ul>
@@ -7602,6 +7606,7 @@ Instead we optimize <strong>logits</strong> <code>Z</code> and compute:</p>
 ensuring that the probabilities for each cell sum to 1.</li>
 <li><code>argmax</code> selects the most likely digit per cell and is used only for
 visualization, not during optimization. argmax returns the first occurrence of the maximum value.</li>
+<li><code>loss-dict</code> calls the loss function <code>sudoku_losses</code>and prints the calclated losses for P</li>
 </ul>
 </div>
 </div>
@@ -7863,7 +7868,8 @@ probabilities away from inconsistent digits and towards the only consistent digi
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="For-Loop">For Loop<a class="anchor-link" href="#For-Loop">¶</a></h3><p>You will oberserve that cell P(3,2) converges quickly from</p>
+<h3 id="2.6-For-Loop">2.6 For Loop<a class="anchor-link" href="#2.6-For-Loop">¶</a></h3><p>Let's do a for Loop to show the convergencey more cleraly.
+You will oberserve that cell P(3,2) converges quickly from</p>
 <p><code>[0.25,0.25,0.25]</code>
 to
 <code>[0.0080, 0.9761, 0.0080, 0.0080]</code></p>
@@ -7969,12 +7975,14 @@ Digits that violate row/column/block consistency are pushed down, while the cons
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">optimize_sudoku</span><span class="p">(</span><span class="n">Z_init</span><span class="p">,</span> <span class="n">givens_mask</span><span class="p">,</span> <span class="n">givens_target</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                   <span class="n">T_start</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">T_end</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">w_row</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w_col</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w_blk</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">w_giv</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">w_ent</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+                   <span class="n">T_start</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">T_end</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">w_row</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w_col</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w_blk</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">w_giv</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">w_ent</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                   <span class="n">save_P_every</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="n">Z</span> <span class="o">=</span> <span class="n">Z_init</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span><span class="n">Z</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
 
     <span class="n">hist</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">"L_total"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_row"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_col"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_blk"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_giv"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_ent"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"T"</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="s2">"L_total"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_row"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_col"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_blk"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_giv"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"L_ent"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"T"</span><span class="p">:</span> <span class="p">[],</span> 
+        <span class="s2">"P_snapshots"</span><span class="p">:</span> <span class="p">{}</span>   <span class="c1"># step -&gt; P</span>
     <span class="p">}</span>
 
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
@@ -7997,13 +8005,28 @@ Digits that violate row/column/block consistency are pushed down, while the cons
         <span class="n">hist</span><span class="p">[</span><span class="s2">"L_giv"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">L_giv</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()))</span>
         <span class="n">hist</span><span class="p">[</span><span class="s2">"L_ent"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">L_ent</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()))</span>
         <span class="n">hist</span><span class="p">[</span><span class="s2">"T"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+        <span class="c1"># store intermediate P</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="o">%</span> <span class="n">save_P_every</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="n">steps</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">hist</span><span class="p">[</span><span class="s2">"P_snapshots"</span><span class="p">][</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">Z</span><span class="o">.</span><span class="n">detach</span><span class="p">(),</span> <span class="n">hist</span>
-
-<span class="c1"># Run the full optimization on the same "almost solved" puzzle (converges quickly)</span>
-<span class="n">Z_final</span><span class="p">,</span> <span class="n">hist</span> <span class="o">=</span> <span class="n">optimize_sudoku</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">givens_mask</span><span class="p">,</span> <span class="n">givens_target</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">T_start</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">T_end</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a46f40ab-25c4-4494-9031-a6a5032f8a9d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Run the full optimization on the same "almost solved" puzzle (converges quickly)</span>
+<span class="n">Z_final</span><span class="p">,</span> <span class="n">hist</span> <span class="o">=</span> <span class="n">optimize_sudoku</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">givens_mask</span><span class="p">,</span> <span class="n">givens_target</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">T_start</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">T_end</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
 <span class="n">P_final</span> <span class="o">=</span> <span class="n">probs_from_logits</span><span class="p">(</span><span class="n">Z_final</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-<span class="n">pretty_grid_from_probs</span><span class="p">(</span><span class="n">P_final</span><span class="p">),</span> <span class="n">P_final</span><span class="p">[</span><span class="n">unknown_rc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unknown_rc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+<span class="n">pretty_grid_from_probs</span><span class="p">(</span><span class="n">P_final</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8058,6 +8081,188 @@ Digits that violate row/column/block consistency are pushed down, while the cons
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=070ebae3-a896-4a62-9084-b9af8101d4a4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2.7.1-Observations">2.7.1 Observations<a class="anchor-link" href="#2.7.1-Observations">¶</a></h3><p>After 4 steps we have already a Total_Loss of almost 0 which shows that the solution is found very quickly.</p>
+<p>In this context, a solution is considered found once the <code>argmax</code>
+projection yields a grid that satisfies all Sudoku constraints.</p>
+<p>Let's try with more unknowns ans analyse the results.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b97c942e-542a-43d6-b858-acdd1ae73a51">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2.7.2-More-Unkowns">2.7.2 More Unkowns<a class="anchor-link" href="#2.7.2-More-Unkowns">¶</a></h3><p>In this example we will select more unknowns in order to show how the optimizer works for a mutlidimensional field.
+We select as Puzzle following grid</p>
+<pre><code>[0, 0, 3, 1]
+[1, 0, 0, 0]
+[0, 2, 1, 0]
+[0, 0, 4, 0]
+</code></pre>
+<p>So our unknowns are P(0,0), P(0,1), P(1,1), P(1,2), P(1,3), P(2,0), P(2,3), P(3,0), P(3,1) and P(3,3)</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9f0ddd4c-4747-4d55-a9fe-d0c25bb3d59e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Almost solved 4×4 Sudoku (0 = unknown)</span>
+<span class="c1"># Digits are 1..4</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+
+<span class="c1"># Build givens mask + targets (targets are digit-1 in [0..3])</span>
+<span class="n">givens_mask</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">!=</span> <span class="mi">0</span>
+<span class="n">givens_target</span> <span class="o">=</span> <span class="p">(</span><span class="n">grid</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">grid</span><span class="p">,</span> <span class="n">givens_mask</span><span class="p">,</span> <span class="n">givens_target</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=562f9d18-f604-45cf-bfc1-2cb7525987e1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Initialize logits Z.</span>
+<span class="c1"># For given cells, we initialize logits such that the correct digit is strongly preferred.</span>
+<span class="c1"># For the unknown cell, logits start at 0 -&gt; uniform probabilities after softmax.</span>
+
+<span class="n">Z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Strongly bias given cells (large positive logit for the correct digit, negative for others)</span>
+<span class="n">high</span> <span class="o">=</span> <span class="mf">6.0</span>
+<span class="n">low</span> <span class="o">=</span> <span class="o">-</span><span class="mf">6.0</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">givens_mask</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">]:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">givens_target</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>  <span class="c1"># 0..3</span>
+            <span class="n">Z</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">low</span>
+            <span class="n">Z</span><span class="p">[</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">high</span>
+
+<span class="c1"># Check probabilities at the unknown cell (3,2)</span>
+<span class="n">P0</span> <span class="o">=</span> <span class="n">probs_from_logits</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">Z</span><span class="p">,</span> <span class="n">P0</span><span class="p">,</span> <span class="n">pretty_grid_from_probs</span><span class="p">(</span><span class="n">P0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9f8698da-bb0b-4a54-82ef-a78274f3e478">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Run the full optimization on the same "almost solved" puzzle (converges quickly)</span>
+<span class="n">Z_final</span><span class="p">,</span> <span class="n">hist</span> <span class="o">=</span> <span class="n">optimize_sudoku</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">givens_mask</span><span class="p">,</span> <span class="n">givens_target</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">T_start</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">T_end</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">P_final</span> <span class="o">=</span> <span class="n">probs_from_logits</span><span class="p">(</span><span class="n">Z_final</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Final solution:</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span><span class="n">pretty_grid_from_probs</span><span class="p">(</span><span class="n">P_final</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e55a4ff3-e8a3-4f00-b037-8825505db3ea">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hist</span><span class="p">[</span><span class="s2">"L_total"</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Total loss over iterations"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"iteration"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"L_total"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hist</span><span class="p">[</span><span class="s2">"L_ent"</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Entropy loss over iterations"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"iteration"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"L_ent"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hist</span><span class="p">[</span><span class="s2">"T"</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Temperature schedule"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"iteration"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"T"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=709d2207-d4ac-48c8-bedb-cb8d0b16cb53">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2.7.3-Observations-(More-Unknowns)">2.7.3 Observations (More Unknowns)<a class="anchor-link" href="#2.7.3-Observations-(More-Unknowns)">¶</a></h3><p>With more unknown cells, the optimization starts from a much larger feasible space.
+As a result, the total loss typically decreases <strong>less steeply</strong> in the first iterations
+compared to the “almost solved” case.</p>
+<p>However, for 4×4 Sudoku the constraint landscape is still very small and strongly structured.
+In this example, the optimizer reaches a discrete-looking solution quickly:
+after about 10 iterations, the <code>argmax</code> projection already yields a valid Sudoku grid.</p>
+<p>Note that we optimize a <strong>continuous relaxation</strong> <code>P</code>, while the displayed grid is obtained via <code>argmax</code>.
+Therefore, “finding the solution” here means: <em>the <code>argmax</code> projection becomes consistent with all constraints</em>,
+even though the underlying probabilities may still continue to sharpen slightly afterwards.</p>
+<p>In practice, 4×4 Sudoku often converges very fast under this relaxation,
+because the problem is small (only 16 cells) and the constraints (rows/cols/blocks) are very strong.
+More interesting convergence behavior typically appears when scaling to 9×9.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6b1fd6cd-1eec-46c4-a582-9ad13df1111e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="2.7.4-Limitations-of-the-4%C3%974-Case">2.7.4 Limitations of the 4×4 Case<a class="anchor-link" href="#2.7.4-Limitations-of-the-4%C3%974-Case">¶</a></h3><ul>
+<li>The optimization landscape is very small and strongly constrained.</li>
+<li>Differences in puzzle difficulty are compressed into very few iterations.</li>
+<li>Loss curves alone are not sufficient to characterize convergence behavior.</li>
+</ul>
+<p>These limitations motivate the extension to 9×9 Sudoku.</p>
+<p>In the next chapter, we extend the same formulation to 9×9 Sudoku.
+At this scale, the optimization dynamics become significantly more interesting,
+with longer plateaus, stronger symmetry effects, and slower convergence.</p>
 </div>
 </div>
 </div>
