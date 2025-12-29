@@ -53,7 +53,7 @@ pip install -r requirements.txt
 jupyter notebook
 
 ```
-# 01 – Tensors, Probabilities, and Constraints (4×4 Sudoku)
+### 01 – Tensors, Probabilities, and Constraints (4×4 Sudoku)
 hs part introduces the **core tensor formulation**.
 
 You will learn:
