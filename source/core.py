@@ -27,3 +27,21 @@ def print_losses(tag: str, d: dict[str, torch.Tensor]) -> None:
     """
     fmt = {k: f"{v.detach().cpu().item():.3f}" for k, v in d.items()}
     print(tag, fmt, "\n")
+
+def check_grid(Z: torch.Tensor)-> None:
+    grid_hat = pretty_grid_from_probs(probs_from_logits(Z, T=0.5))  # oder T_end
+    print(grid_hat)
+    
+    # Check rows/cols contain 1..9 exactly once
+    ok_rows = all(sorted(row.tolist()) == list(range(1,10)) for row in grid_hat)
+    ok_cols = all(sorted(grid_hat[:,j].tolist()) == list(range(1,10)) for j in range(9))
+    
+    # Check 3x3 blocks
+    ok_blks = True
+    for r0 in range(0, 9, 3):
+        for c0 in range(0, 9, 3):
+            blk = grid_hat[r0:r0+3, c0:c0+3].reshape(-1).tolist()
+            if sorted(blk) != list(range(1,10)):
+                ok_blks = False
+    
+    print("rows ok:", ok_rows, "cols ok:", ok_cols, "blocks ok:", ok_blks)
