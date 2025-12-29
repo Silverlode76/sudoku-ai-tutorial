@@ -36,6 +36,15 @@ Each part builds directly on the previous one.
 
 ---
 
+## Repository Structure
+
+- `images/` – visual explanations used in the notebooks and README
+- `source/` – helper functions and reusable components
+- `*.ipynb` – tutorial notebooks in recommended reading order
+
+---
+
+
 ### 01 – Tensors, Probabilities, and Constraints (4×4 Sudoku)
 
 This part introduces the **core tensor formulation**.
