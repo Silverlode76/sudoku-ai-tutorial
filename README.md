@@ -1,6 +1,7 @@
 # Sudoku AI Tutorial – Solving Sudoku with Tensors and Optimization
 
-<img src="images/Cube4x4x4.jpg" alt="4×4×4 Sudoku as a tensor cube" width="200">
+<img src="images/Cube4x4x4.jpg" alt="4×4×4 Sudoku as a tensor cube" align="left" width="200">
+<img src="images/CubeP_BLK_4x4x4.jpg" alt="4×4×4 Sudoku as a tensor cube" width="400">
 
 
 This repository is a step-by-step educational project that demonstrates how a Sudoku puzzle can be formulated and solved as a **continuous optimization problem** using PyTorch.
@@ -49,7 +50,9 @@ You will learn:
 To keep all tensor operations transparent and easy to inspect, this chapter uses a **4×4 Sudoku** with 2×2 blocks.
 
 📄 Notebook / PDF:
-- `01_sudoku_constraints_tensor_basics_4x4_EN`
+- `01_sudoku_constraints_tensor_basics_4x4_EN.ipynb`
+- `02_sudoku_optimization_4x4_EN.ipynb`
+- `03_sudoku_optimization_9x9_EN.ipynb`
 
 ---
 
