@@ -65,11 +65,16 @@ You will learn:
 
 To keep all tensor operations transparent and easy to inspect, this chapter uses a **4×4 Sudoku** with 2×2 blocks.
 
-📄 Notebook / PDF:
-- `01_sudoku_constraints_tensor_basics_4x4_EN.ipynb`
-- `02_sudoku_optimization_4x4_EN.ipynb`
-- `03_sudoku_optimization_9x9_EN.ipynb`
+📄 **Notebook / Google Colab:**
 
+You can also run directly the Notebooks Google Colab
+
+- `01_sudoku_constraints_tensor_basics_4x4_EN.ipynb`  
+  - Colab: [Open in Colab](https://colab.research.google.com/github/Silverlode76/sudoku-ai-tutorial/blob/main/01_sudoku_constraints_tensor_basics_4x4_EN.ipynb)
+- `02_sudoku_optimization_4x4_EN.ipynb`
+  - Colab: [Open in Colab](https://colab.research.google.com/github/Silverlode76/sudoku-ai-tutorial/blob/main/02_sudoku_optimization_4x4_EN.ipynb)
+- `03_sudoku_optimization_9x9_EN.ipynb`
+  - Colab: [Open in Colab](https://colab.research.google.com/github/Silverlode76/sudoku-ai-tutorial/blob/main/03_sudoku_optimization_9x9_EN.ipynb)
 ---
 
 ### 02 – Optimization with PyTorch
