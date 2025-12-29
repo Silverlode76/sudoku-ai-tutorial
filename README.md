@@ -44,6 +44,15 @@ Each part builds directly on the previous one.
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/Silverlode76/sudoku-ai-tutorial.git
+cd sudoku-ai-tutorial
+pip install -r requirements.txt
+jupyter notebook
+
+---
 
 ### 01 – Tensors, Probabilities, and Constraints (4×4 Sudoku)
 
