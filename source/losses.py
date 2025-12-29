@@ -10,6 +10,11 @@ def entropy_loss(P: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
     ent = -(P * (P + eps).log()).sum(dim=-1)  # (N,N)
     return ent.sum()
 
+def entropy_mean(P: torch.Tensor, eps: float = 1e-9) -> float:
+
+    ent = -(P * (P + 1e-9).log()).sum(dim=2)   # (9,9)
+    return ent.mean().item()
+
 def sudoku_losses(
     P: torch.Tensor,
     givens_mask: torch.Tensor,
