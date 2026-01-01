@@ -54,7 +54,7 @@ jupyter notebook
 
 ```
 ### 01 – Tensors, Probabilities, and Constraints (4×4 Sudoku)
-hs part introduces the **core tensor formulation**.
+This part introduces the **core tensor formulation**.
 
 You will learn:
 - how a Sudoku grid can be represented as a 3D tensor `(row, column, digit)`
